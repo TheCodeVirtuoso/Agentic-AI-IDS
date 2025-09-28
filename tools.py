@@ -5,13 +5,14 @@ import whois
 import datetime
 from dotenv import load_dotenv
 from typing import Union
-
+from langchain.agents import tool
 # Load environment variables from the .env file in the project's root directory
 load_dotenv()
 
 # ==============================================================================
 # TOOL 1: IP REPUTATION CHECKER
 # ==============================================================================
+@tool
 def check_ip_reputation(ip_address: str) -> str:
     """
     Checks the reputation of an IP address using the AbuseIPDB API.
@@ -69,6 +70,7 @@ def check_ip_reputation(ip_address: str) -> str:
 # ==============================================================================
 # TOOL 2: WHOIS LOOKUP
 # ==============================================================================
+@tool
 def get_whois_info(domain_or_ip: str) -> str:
     """
     Performs a WHOIS lookup for a given domain or IP address to find registration
@@ -115,6 +117,7 @@ def get_whois_info(domain_or_ip: str) -> str:
 # ==============================================================================
 # TOOL 3: SIMULATED FIREWALL BLOCK
 # ==============================================================================
+@tool
 def create_firewall_block_rule(ip_address: str, reason: str) -> str:
     """
     Simulates creating a firewall rule to block an IP address. This is a safe
