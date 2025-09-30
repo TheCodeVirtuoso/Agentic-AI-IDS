@@ -4,13 +4,14 @@ import json
 import whois
 import datetime
 from dotenv import load_dotenv
-from typing import Union
+from typing import Union, Dict, Any 
 from langchain.agents import tool
 # Load environment variables from the .env file in the project's root directory
 load_dotenv()
+import json # Keep this import
 
 # ==============================================================================
-# TOOL 1: IP REPUTATION CHECKER
+# TOOL 1: IP REPUTATION CHECKER 
 # ==============================================================================
 @tool
 def check_ip_reputation(ip_address: str) -> str:
@@ -48,7 +49,6 @@ def check_ip_reputation(ip_address: str) -> str:
         if data.get('abuseConfidenceScore', 0) == 0:
             return f"IP {ip_address} is considered clean. Abuse Score: 0. Country: {data.get('countryName', 'N/A')}."
         
-        # If the score is > 0, provide a detailed, multi-line summary for the LLM to parse
         summary = (
             f"IP {ip_address} is POTENTIALLY MALICIOUS.\n"
             f"- Abuse Confidence Score: {data.get('abuseConfidenceScore', 'N/A')}/100\n"
@@ -87,7 +87,6 @@ def get_whois_info(domain_or_ip: str) -> str:
         w = whois.whois(domain_or_ip)
         
         if not w.get('domain_name'):
-             # It's likely an IP address lookup
             org = w.get('org', 'N/A')
             if org != 'N/A':
                  info = (
@@ -100,7 +99,6 @@ def get_whois_info(domain_or_ip: str) -> str:
             else:
                 return f"No detailed WHOIS information found for '{domain_or_ip}'. It may be an unallocated or private IP."
 
-        # It's a domain name lookup
         info = (
             f"WHOIS lookup for domain '{domain_or_ip}':\n"
             f"- Registrar: {w.get('registrar', 'N/A')}\n"
@@ -115,39 +113,82 @@ def get_whois_info(domain_or_ip: str) -> str:
 
 
 # ==============================================================================
-# TOOL 3: SIMULATED FIREWALL BLOCK
+# TOOL 3: SIMULATED FIREWALL BLOCK (Robust Fix)
 # ==============================================================================
 @tool
-def create_firewall_block_rule(ip_address: str, reason: str) -> str:
+def create_firewall_block_rule(input_json_string: str) -> str:
     """
-    Simulates creating a firewall rule to block an IP address. This is a safe
-    "action" tool for the Coordinator Agent. It prints the action to the console
-    and appends it to a log file for auditing purposes.
-    
-    Args:
-        ip_address: The IP address to be blocked.
-        reason: The reason for blocking the IP, provided by the Coordinator Agent.
-
-    Returns:
-        A confirmation message that the action was logged.
+    Simulates creating a firewall rule to block an IP address.
+    This tool takes a single JSON string argument, which MUST be a JSON object
+    containing 'ip_address' and 'reason' keys.
     """
-    log_message = (
-        f"{datetime.datetime.now().isoformat()} - [ACTION] - BLOCK IP: {ip_address} - REASON: {reason}"
-    )
-    
-    # Print to console for immediate feedback during runtime
-    print(log_message)
-    
-    # Append to a log file for record-keeping
     try:
-        with open("firewall_rules.log", "a") as f:
-            f.write(log_message + "\n")
-        return f"Success: Firewall block rule for IP {ip_address} was simulated and logged."
-    except Exception as e:
-        return f"Error: Could not write to firewall log file. Details: {e}"
+        # Step 1: Parse the incoming JSON string
+        parsed_data = json.loads(input_json_string)
+    except json.JSONDecodeError:
+        return f"Error: Input is not a valid JSON string: {input_json_string}"
+
+    # Step 2: Handle the nested structure ({"details": {ip, reason}})
+    if 'details' in parsed_data:
+        final_details = parsed_data['details']
+    else:
+        final_details = parsed_data 
+
+    ip_address = final_details.get('ip_address')
+    reason = final_details.get('reason')
+    
+    if not ip_address or not reason:
+        return "Error: Firewall input must contain 'ip_address' and 'reason' keys."
+        
+    log_message = f"{datetime.datetime.now().isoformat()} - [ACTION] - BLOCK IP: {ip_address} - REASON: {reason}"
+    print(log_message)
+    try:
+        with open("firewall_rules.log", "a") as f: f.write(log_message + "\n")
+        return f"Success: Firewall block rule for IP {ip_address} was logged."
+    except Exception as e: return f"Error: Could not write to firewall log file: {e}"
 
 # ==============================================================================
-# TEST BLOCK
+# TOOL 4: HUMAN REVIEW QUEUE (CRITICAL FIX APPLIED HERE)
+# ==============================================================================
+@tool
+def log_for_human_review(input_json_string: str) -> str:
+    """
+    Logs an incident to the human review queue when autonomous action is not taken.
+    The input MUST be a JSON string containing 'ip_address', 'threat_level', and 'report_summary'.
+    """
+    try:
+        # Step 1: Parse the incoming JSON string
+        parsed_data = json.loads(input_json_string)
+    except json.JSONDecodeError:
+        return f"Error: HIL input is not a valid JSON string: {input_json_string}"
+    
+    # Step 2: Handle the nested structure ({"case_details": {...}})
+    if 'case_details' in parsed_data:
+        final_details = parsed_data['case_details']
+    else:
+        final_details = parsed_data
+        
+    ip_address = final_details.get('ip_address', 'N/A')
+    threat_level = final_details.get('threat_level', 'UNKNOWN')
+    report_summary = final_details.get('report_summary', 'No summary provided')
+    
+    if ip_address == 'N/A':
+        return "Error: HIL input is missing 'ip_address'."
+
+    log_message = (
+        f"{datetime.datetime.now().isoformat()} - [REVIEW] - LEVEL: {threat_level} - IP: {ip_address} - SUMMARY: {report_summary}"
+    )
+    
+    # Append to a dedicated log file
+    try:
+        with open("review_queue.log", "a") as f:
+            f.write(log_message + "\n")
+        return f"Success: Incident logged to human review queue at {threat_level} level for IP {ip_address}."
+    except Exception as e:
+        return f"Error logging to review queue: {e}"
+
+# ==============================================================================
+# TEST BLOCK (No changes made)
 # ==============================================================================
 if __name__ == '__main__':
     """
@@ -184,7 +225,8 @@ if __name__ == '__main__':
     print("\n" + "="*40)
     
     print("\n[3] Testing Simulated Firewall Tool...")
-    malicious_ip_to_block = "103.224.212.222" # Example IP from a threat feed
-    block_reason = "High confidence C&C server detected by Coordinator Agent."
-    print(f"\nSimulating block for IP: {malicious_ip_to_block}")
-    print(create_firewall_block_rule(malicious_ip_to_block, block_reason))
+    # --- CHANGE: The test now creates a dictionary to pass to the tool ---
+    block_details_to_test = '{"details": {"ip_address": "103.224.212.222", "reason": "High confidence C&C server detected by Coordinator Agent."}}'
+    print(f"\nSimulating block for IP: 103.224.212.222")
+    # --- CHANGE: The tool is now called with the single dictionary argument ---
+    print(create_firewall_block_rule(block_details_to_test))

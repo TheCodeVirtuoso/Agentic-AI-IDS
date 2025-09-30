@@ -1,1 +1,13 @@
 2025-09-28T12:18:17.625573 - [ACTION] - BLOCK IP: 103.224.212.222 - REASON: High confidence C&C server detected by Coordinator Agent.
+2025-09-30T18:27:57.500107 - [ACTION] - BLOCK IP: 203.0.113.78 - REASON: IP found on threat intelligence feed.
+2025-09-30T18:28:16.121340 - [ACTION] - BLOCK IP: 198.51.100.12 - REASON: IP found on threat intelligence feed.
+2025-09-30T18:36:51.133301 - [ACTION] - BLOCK IP: 203.0.113.78 - REASON: IP found on threat intelligence feed.
+2025-09-30T18:37:40.339698 - [ACTION] - BLOCK IP: 198.51.100.12 - REASON: High Risk threat assessment; IP found on threat intelligence feed.
+2025-09-30T19:03:46.343891 - [ACTION] - BLOCK IP: 198.51.100.78 - REASON: Known command-and-control (C2) server for the ShadowNet botnet, involved in data exfiltration and malware distribution.
+2025-09-30T19:04:06.683361 - [ACTION] - BLOCK IP: 198.51.100.78 - REASON: Known command-and-control (C2) server for the ShadowNet botnet, involved in data exfiltration and malware distribution.
+2025-09-30T19:04:14.027659 - [ACTION] - BLOCK IP: 198.51.100.78 - REASON: Known command-and-control (C2) server for the ShadowNet botnet, involved in data exfiltration and malware distribution.
+2025-09-30T19:04:20.077303 - [ACTION] - BLOCK IP: 198.51.100.78 - REASON: Known command-and-control (C2) server for the ShadowNet botnet, involved in data exfiltration and malware distribution.
+2025-09-30T19:04:29.548288 - [ACTION] - BLOCK IP: 198.51.100.78 - REASON: Known command-and-control (C2) server for the ShadowNet botnet, involved in data exfiltration and malware distribution.
+2025-09-30T19:04:49.070599 - [ACTION] - BLOCK IP: 198.51.100.78 - REASON: Known command-and-control (C2) server for the ShadowNet botnet, involved in data exfiltration and malware distribution.
+2025-09-30T19:04:54.749571 - [ACTION] - BLOCK IP: 198.51.100.78 - REASON: Known command-and-control (C2) server for the ShadowNet botnet, involved in data exfiltration and malware distribution.
+2025-09-30T19:05:03.149824 - [ACTION] - BLOCK IP: 198.51.100.78 - REASON: Known command-and-control (C2) server for the ShadowNet botnet, involved in data exfiltration and malware distribution.

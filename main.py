@@ -3,21 +3,37 @@ import joblib
 import os
 import time
 import numpy as np
+from itertools import cycle # Import cycle for continuous IP rotation
 
-# Import the agent executor and the final coordinator from Phase 3
-from agents import anomaly_agent_executor, coordinator_agent_executor
+# Import all three agent components from our central agents.py file
+from agents import anomaly_agent_executor, coordinator_agent_executor, run_signature_check
 
 # --- CONFIGURATION ---
 MODEL_DIR = 'models'
 DATA_DIR = 'data'
 MODEL_PATH = os.path.join(MODEL_DIR, 'anomaly_detector.joblib')
 SCALER_PATH = os.path.join(MODEL_DIR, 'scaler.joblib')
-# We'll use a data file that contains attack traffic for our test
-TEST_DATA_PATH = os.path.join(DATA_DIR, 'Bruteforce-Tuesday-no-metadata.parquet') 
+TEST_DATA_PATH = os.path.join(DATA_DIR, 'Bruteforce-Tuesday-no-metadata.parquet')
+THREAT_FEED_FILE = "threat_feed.txt"
+PROACTIVE_CHECK_INTERVAL_SECONDS = 15 # Check threat feed every 15 seconds
 
-# --- 1. LOAD ARTIFACTS ---
+# Define the dynamic test cases (10 IPs)
+# Note: IP reputations are dynamic, but these are chosen to generally represent the categories below.
+DYNAMIC_TEST_IPS = [
+    "185.220.101.243",  # 1. High Risk (Should Block)
+    "1.1.1.1",          # 2. Benign (Should Log/Escalate)
+    "172.67.240.24",    # 3. Medium Risk (Gray Area, Should Log/Monitor)
+    "8.8.8.8",          # 4. Benign (Should Log/Escalate)
+    "192.81.218.15",    # 5. High Risk (Should Block)
+    "208.67.222.222",   # 6. Benign (Should Log/Escalate)
+    "172.67.240.24",    # 7. Medium Risk (Repeat Ambiguous Case)
+    "185.220.101.243",  # 8. High Risk (Repeat Block Case)
+    "1.1.1.1",          # 9. Benign (Repeat Filter Case)
+    "192.81.218.15"     # 10. High Risk (Repeat Block Case)
+]
+
+# --- Functions to load artifacts and data (No functional changes) ---
 def load_artifacts():
-    """Loads the saved machine learning model and scaler."""
     print("Loading the anomaly detection model and scaler...")
     try:
         model = joblib.load(MODEL_PATH)
@@ -25,16 +41,13 @@ def load_artifacts():
         print("Model and scaler loaded successfully.")
         return model, scaler
     except FileNotFoundError:
-        print("Error: Model or scaler file not found. Please ensure they are in the 'models' directory.")
+        print("Error: Model or scaler file not found.")
         return None, None
 
-# --- 2. LOAD AND PREPARE DATA ---
 def load_and_prepare_data(file_path):
-    """Loads and prepares network traffic data for prediction."""
     print(f"Loading and preparing test data from {file_path}...")
     try:
         df = pd.read_parquet(file_path)
-        # These are the exact feature columns our model was trained on
         required_features = [
             'Flow Duration', 'Total Fwd Packets', 'Total Backward Packets',
             'Fwd Packets Length Total', 'Bwd Packets Length Total', 'Fwd Packet Length Max',
@@ -42,90 +55,89 @@ def load_and_prepare_data(file_path):
             'Flow IAT Max', 'Flow IAT Min', 'Fwd IAT Total'
         ]
         df_features = df[required_features].copy()
-        
-        # This dataset doesn't have IP addresses, which is fine for our simulation.
-        # We will simulate finding a suspicious IP when an anomaly is detected.
         print("Data prepared successfully.")
         return df_features
-        
     except (FileNotFoundError, KeyError) as e:
         print(f"Error during data loading: {e}")
         return None
 
-# --- 3. THE MAIN ORCHESTRATION LOGIC ---
-def run_soc_simulation(model, scaler, data_features):
-    """
-    Runs the full simulation:
-    1. Scales the data.
-    2. Predicts anomalies using the ML model.
-    3. Triggers the AI agent workflow for each detected anomaly.
-    """
-    print("\n--- [ML MODEL] Scaling data and predicting anomalies ---")
+# --- THE MAIN ORCHESTRATION LOOP (Updated for Dynamic Test Cycling) ---
+def run_soc_orchestrator(model, scaler, data_features):
+    processed_ips_from_feed = set()
+    last_proactive_check = time.time()
     
-    # Scale the feature data using the loaded scaler
+    # Pre-calculate all anomalies to be processed
+    print("\n--- [ML MODEL] Scaling data and predicting anomalies... ---")
     data_scaled = scaler.transform(data_features)
-    
-    # Predict anomalies (-1 for anomalies, 1 for normal)
     predictions = model.predict(data_scaled)
-    
-    # Find the indices of the rows that are predicted as anomalies
     anomaly_indices = np.where(predictions == -1)[0]
     
-    print(f"Prediction complete. Found {len(anomaly_indices)} potential anomalies.")
+    # Use a limited number of anomalies equal to the length of our test IPs
+    num_tests = len(DYNAMIC_TEST_IPS)
+    anomaly_iterator = iter(anomaly_indices[:num_tests]) # Only process enough anomalies for our test IPs
     
-    # --- AGENT WORKFLOW ---
-    # To avoid spamming APIs, we will only process the first few anomalies found
-    max_anomalies_to_process = 3
-    processed_count = 0
+    # Create an iterator that cycles through our test IPs
+    ip_cycler = iter(DYNAMIC_TEST_IPS) 
 
-    if len(anomaly_indices) == 0:
-        print("\nNo anomalies detected in the provided data. Simulation complete.")
-        return
+    print(f"\n--- [Reactive Alert] Preparing to process {num_tests} dynamic test cases... ---")
 
-    print(f"\n--- [AI AGENTS] Starting investigation for the first {max_anomalies_to_process} anomalies ---")
-    
-    for index in anomaly_indices:
-        if processed_count >= max_anomalies_to_process:
-            break
+    print("\n--- --- SOC Orchestrator is now LIVE ------")
+    print("Simulating live network traffic analysis and proactive threat hunting.")
+
+    # In main.py, replace the content of the while loop inside run_soc_orchestrator:
+    try:
+        test_case_count = 0
+        while test_case_count < num_tests:
             
-        processed_count += 1
-        print(f"\n\n--- Processing Anomaly #{processed_count} (from data row {index}) ---")
-        
-        # ** SIMULATION STEP **
-        # Since we don't have the real IP, we'll use a known suspicious IP for demonstration.
-        # In a real system, you would get this from the data row.
-        simulated_suspicious_ip = "185.191.207.121" # A known bad IP for testing
-        
-        print(f"[STAGE 1] ML model detected an anomaly. Simulating source IP: {simulated_suspicious_ip}")
-        print("Triggering Anomaly Investigator Agent...")
+            # --- A. REACTIVE DEFENSE (Process one anomaly alert) ---
+            try:
+                index = next(anomaly_iterator)
+                current_test_ip = next(ip_cycler)
+                test_case_count += 1
+                
+                print(f"\n--- TEST CASE #{test_case_count}: IP {current_test_ip} (Row {index}) ---")
+                
+                print(f"[STAGE 1] Triggering Anomaly Agent for IP: {current_test_ip}...")
+                
+                # --- Anomaly Agent Execution (FIXED ASSIGNMENT) ---
+                # The result contains the structured report, which we assign to the variable
+                # investigation_report so the Coordinator can use it later.
+                report_dict = anomaly_agent_executor.invoke({"input": current_test_ip})
+                investigation_report = report_dict['output'] # <-- CORRECTLY ASSIGNED
 
-        try:
-            # Invoke the anomaly agent to investigate the simulated IP
-            investigation_result = anomaly_agent_executor.invoke({"input": simulated_suspicious_ip})
-            investigation_report = investigation_result['output']
-            
-            print("\n--- [STAGE 1] Anomaly Agent's Final Report ---")
-            print(investigation_report)
-            
-            # Pass the report to the Coordinator Agent
-            print("\n\n[STAGE 2] Coordinator Agent is reviewing the report...")
-            final_decision = coordinator_agent_executor.invoke({"input": investigation_report})
-            
-            print("\n--- [STAGE 2] Coordinator Agent's Final Decision ---")
-            print(final_decision['output'])
+                print("\n[STAGE 2] Passing Anomaly Agent's report to Coordinator...")
+                
+                # --- Coordinator Agent Execution ---
+                coordinator_agent_executor.invoke({"input": investigation_report}) # <-- NOW CORRECT
 
-        except Exception as e:
-            print(f"An error occurred during agent execution: {e}")
-        
-        time.sleep(2) # Add a small delay to avoid overwhelming APIs if processing many alerts
+            except StopIteration:
+                print("\n--- All anomaly test cases completed. Continuing with proactive checks only. ---")
+            
+            # --- B. PROACTIVE DEFENSE (Check threat feed periodically) ---
+            current_time = time.time()
+            if current_time - last_proactive_check > PROACTIVE_CHECK_INTERVAL_SECONDS:
+                processed_ips_from_feed = run_signature_check(processed_ips_from_feed, THREAT_FEED_FILE)
+                last_proactive_check = current_time
 
+            # Slow down the simulation to make it observable
+            time.sleep(1)
+
+    except KeyboardInterrupt:
+        print("\n------ SOC Orchestrator shutting down. ------")
 # --- MAIN EXECUTION BLOCK ---
 if __name__ == "__main__":
+    # Ensure the threat feed file exists for the Signature Agent
+    if not os.path.exists(THREAT_FEED_FILE):
+        print(f"Creating a sample threat feed file: {THREAT_FEED_FILE}")
+        with open(THREAT_FEED_FILE, 'w') as f:
+            f.write("203.0.113.78\n")
+            f.write("198.51.100.12\n")
+
     model, scaler = load_artifacts()
     
     if model and scaler:
-        data_features = load_and_prepare_data(TEST_DATA_PATH)
-        
-        if data_features is not None:
-            run_soc_simulation(model, scaler, data_features)
-            print("\n\n------ Full SOC Workflow Simulation Complete ------")
+        all_data_features = load_and_prepare_data(TEST_DATA_PATH)
+        if all_data_features is not None:
+            # Use data features sufficient for our test cases
+            run_soc_orchestrator(model, scaler, all_data_features)
+            print("\n------ Full SOC Workflow Simulation Complete ------")
