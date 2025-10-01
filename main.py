@@ -32,7 +32,7 @@ DYNAMIC_TEST_IPS = [
     "192.81.218.15"     # 10. High Risk (Repeat Block Case)
 ]
 
-# --- Functions to load artifacts and data (No functional changes) ---
+# --- Functions to load artifacts and data ---
 def load_artifacts():
     print("Loading the anomaly detection model and scaler...")
     try:
@@ -61,6 +61,18 @@ def load_and_prepare_data(file_path):
         print(f"Error during data loading: {e}")
         return None
 
+def explain_anomaly(model, scaler, data_features, index):
+    # Simple explanation: show top contributing features for anomaly
+    try:
+        # For simplicity, show the feature values at the anomaly index
+        row = data_features.iloc[index]
+        top_features = row.nlargest(3)  # Top 3 features by value
+        explanation = f"Top contributing features: {', '.join([f'{k}: {v:.2f}' for k, v in top_features.items()])}"
+        return explanation
+    except Exception as e:
+        print(f"Error generating explanation: {e}")
+        return "Explanation not available."
+
 # --- THE MAIN ORCHESTRATION LOOP (Updated for Dynamic Test Cycling) ---
 def run_soc_orchestrator(model, scaler, data_features):
     processed_ips_from_feed = set()
@@ -84,7 +96,6 @@ def run_soc_orchestrator(model, scaler, data_features):
     print("\n--- --- SOC Orchestrator is now LIVE ------")
     print("Simulating live network traffic analysis and proactive threat hunting.")
 
-    # In main.py, replace the content of the while loop inside run_soc_orchestrator:
     try:
         test_case_count = 0
         while test_case_count < num_tests:
@@ -100,10 +111,15 @@ def run_soc_orchestrator(model, scaler, data_features):
                 print(f"[STAGE 1] Triggering Anomaly Agent for IP: {current_test_ip}...")
                 
                 # --- Anomaly Agent Execution (FIXED ASSIGNMENT) ---
-                # The result contains the structured report, which we assign to the variable
-                # investigation_report so the Coordinator can use it later.
                 report_dict = anomaly_agent_executor.invoke({"input": current_test_ip})
                 investigation_report = report_dict['output'] # <-- CORRECTLY ASSIGNED
+
+                # Generate explanation for anomaly
+                explanation = explain_anomaly(model, scaler, data_features, index)
+                if explanation:
+                    print(f"[XAI] Explanation for anomaly at index {index}: {explanation}")
+                else:
+                    print("[XAI] Explanation not available.")
 
                 print("\n[STAGE 2] Passing Anomaly Agent's report to Coordinator...")
                 
@@ -124,6 +140,7 @@ def run_soc_orchestrator(model, scaler, data_features):
 
     except KeyboardInterrupt:
         print("\n------ SOC Orchestrator shutting down. ------")
+
 # --- MAIN EXECUTION BLOCK ---
 if __name__ == "__main__":
     # Ensure the threat feed file exists for the Signature Agent

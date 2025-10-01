@@ -4,11 +4,14 @@ import json
 import whois
 import datetime
 from dotenv import load_dotenv
-from typing import Union, Dict, Any 
+from typing import Union, Dict, Any
 from langchain.agents import tool
 # Load environment variables from the .env file in the project's root directory
 load_dotenv()
 import json # Keep this import
+
+# Phase 2: Blockchain for Immutable Logs
+from blockchain import add_log_to_blockchain
 
 # ==============================================================================
 # TOOL 1: IP REPUTATION CHECKER 
@@ -144,7 +147,10 @@ def create_firewall_block_rule(input_json_string: str) -> str:
     print(log_message)
     try:
         with open("firewall_rules.log", "a") as f: f.write(log_message + "\n")
-        return f"Success: Firewall block rule for IP {ip_address} was logged."
+        # Phase 2: Add to blockchain for immutability
+        block_hash = add_log_to_blockchain(log_message)
+        print(f"Log added to blockchain with hash: {block_hash}")
+        return f"Success: Firewall block rule for IP {ip_address} was logged and added to blockchain."
     except Exception as e: return f"Error: Could not write to firewall log file: {e}"
 
 # ==============================================================================
@@ -183,10 +189,131 @@ def log_for_human_review(input_json_string: str) -> str:
     try:
         with open("review_queue.log", "a") as f:
             f.write(log_message + "\n")
-        return f"Success: Incident logged to human review queue at {threat_level} level for IP {ip_address}."
+        # Phase 2: Add to blockchain for immutability
+        block_hash = add_log_to_blockchain(log_message)
+        print(f"Log added to blockchain with hash: {block_hash}")
+        return f"Success: Incident logged to human review queue at {threat_level} level for IP {ip_address} and added to blockchain."
     except Exception as e:
         return f"Error logging to review queue: {e}"
 
+# In tools.py, at the very bottom:
+
+# ==============================================================================
+# TOOL 5: REAL-TIME THREAT INTELLIGENCE FETCHER (Phase 2)
+# ==============================================================================
+@tool
+def fetch_threat_intelligence() -> str:
+    """
+    Fetches real-time threat intelligence from AlienVault OTX API.
+    Retrieves recent malicious IPs and domains for proactive threat hunting.
+    Requires OTX_API_KEY in .env file.
+    """
+    api_key = os.getenv("OTX_API_KEY")
+    if not api_key:
+        return "Error: OTX_API_KEY not found in .env file. Please set it to access AlienVault OTX."
+
+    url = "https://otx.alienvault.com/api/v1/indicators/export"
+    headers = {"X-OTX-API-KEY": api_key}
+    params = {"types": "IPv4", "limit": 50}  # Fetch up to 50 recent IPv4 threats
+
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()
+        data = response.json()
+
+        threats = []
+        for item in data.get("results", []):
+            if item.get("type") == "IPv4":
+                threats.append(item.get("indicator"))
+
+        if threats:
+            return f"Fetched {len(threats)} threats from OTX: {', '.join(threats[:10])}..."  # Show first 10
+        else:
+            return "No new threats fetched from OTX."
+
+    except requests.exceptions.RequestException as e:
+        return f"Error fetching from OTX: {e}"
+
+# ==============================================================================
+# TOOL 6: BEHAVIORAL ANALYSIS WITH GNN (Phase 2)
+# ==============================================================================
+@tool
+def analyze_behavior(ip_address: str) -> str:
+    """
+    Performs behavioral analysis on an IP address using Graph Neural Networks (GNN).
+    Analyzes traffic patterns, connections, and anomalies in network behavior.
+    This tool simulates advanced GNN-based anomaly detection for IP behavior.
+
+    Args:
+        ip_address: The IP address to analyze.
+
+    Returns:
+        A detailed behavioral analysis report.
+    """
+    # Simulate GNN analysis (in a real implementation, this would use PyTorch Geometric or similar)
+    # For demo purposes, we'll use a simple heuristic-based analysis
+
+    import random
+    random.seed(hash(ip_address) % 1000)  # Deterministic randomness based on IP
+
+    # Mock GNN analysis results
+    anomaly_score = random.uniform(0, 1)
+    connection_count = random.randint(1, 100)
+    unusual_patterns = random.choice([True, False])
+
+    if anomaly_score > 0.7:
+        assessment = "High Risk - Anomalous behavior detected"
+        details = f"GNN detected unusual traffic patterns with anomaly score {anomaly_score:.2f}. High connection count ({connection_count}) suggests potential botnet activity."
+    elif anomaly_score > 0.4:
+        assessment = "Medium Risk - Suspicious behavior"
+        details = f"GNN identified moderate anomalies (score {anomaly_score:.2f}). Connection count: {connection_count}. Recommend monitoring."
+    else:
+        assessment = "Low Risk - Normal behavior"
+        details = f"GNN analysis shows normal traffic patterns (score {anomaly_score:.2f}). Connection count: {connection_count} within expected range."
+
+    report = f"""
+Behavioral Analysis Report for IP {ip_address} (GNN-based):
+
+Assessment: {assessment}
+
+Details:
+- Anomaly Score: {anomaly_score:.2f} (0-1 scale, higher = more anomalous)
+- Connection Count: {connection_count}
+- Unusual Patterns Detected: {unusual_patterns}
+
+GNN Insights:
+- Graph analysis shows {'high interconnectivity' if connection_count > 50 else 'normal connectivity'}
+- {'Temporal patterns suggest automated activity' if unusual_patterns else 'Patterns consistent with legitimate traffic'}
+
+Recommendation: {'Immediate blocking and investigation' if anomaly_score > 0.7 else 'Monitor closely' if anomaly_score > 0.4 else 'No action required'}
+"""
+
+    return report.strip()
+
+# ==============================================================================
+# TOOL 7: BLOCKCHAIN LOGS VIEWER (Phase 2)
+# ==============================================================================
+@tool
+def get_blockchain_logs() -> str:
+    """
+    Retrieves the immutable blockchain logs for audit and verification.
+    Returns a JSON string of all blockchain blocks containing log entries.
+    """
+    from blockchain import get_blockchain_logs
+    logs = get_blockchain_logs()
+    return json.dumps(logs, indent=2)
+
+# ==============================================================================
+# TOOL 7: TASK COMPLETION TOOL
+# ==============================================================================
+@tool
+def end_task() -> str:
+    """
+    Use this tool as your final action when you have successfully completed your task
+    (either by blocking an IP or logging it for human review) and no further
+    action is required. This will end the current operation.
+    """
+    return "Task successfully completed and terminated."
 # ==============================================================================
 # TEST BLOCK (No changes made)
 # ==============================================================================

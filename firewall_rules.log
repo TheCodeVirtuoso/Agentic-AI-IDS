@@ -11,3 +11,43 @@
 2025-09-30T19:04:49.070599 - [ACTION] - BLOCK IP: 198.51.100.78 - REASON: Known command-and-control (C2) server for the ShadowNet botnet, involved in data exfiltration and malware distribution.
 2025-09-30T19:04:54.749571 - [ACTION] - BLOCK IP: 198.51.100.78 - REASON: Known command-and-control (C2) server for the ShadowNet botnet, involved in data exfiltration and malware distribution.
 2025-09-30T19:05:03.149824 - [ACTION] - BLOCK IP: 198.51.100.78 - REASON: Known command-and-control (C2) server for the ShadowNet botnet, involved in data exfiltration and malware distribution.
+2025-10-01T11:45:00.929838 - [ACTION] - BLOCK IP: 198.51.100.78 - REASON: Known command and control (C2) server for 'ShadowNet' botnet, observed attempting to exploit CVE-2023-12345.
+2025-10-01T11:45:07.839727 - [ACTION] - BLOCK IP: 198.51.100.78 - REASON: Known command and control (C2) server for 'ShadowNet' botnet, observed attempting to exploit CVE-2023-12345.
+2025-10-01T11:45:15.464656 - [ACTION] - BLOCK IP: 203.0.113.55 - REASON: Known command and control (C2) server for the 'ViperBot' malware, observed attempting to exfiltrate data.
+2025-10-01T11:45:22.050133 - [ACTION] - BLOCK IP: 198.51.100.78 - REASON: Known command and control (C2) server for 'ShadowNet' botnet, observed attempting to exploit CVE-2023-12345.
+2025-10-01T11:45:26.530760 - [ACTION] - BLOCK IP: 198.51.100.78 - REASON: Known command and control (C2) server for 'ShadowNet' botnet, observed attempting to exploit CVE-2023-12345.
+2025-10-01T11:45:32.472439 - [ACTION] - BLOCK IP: 198.51.100.78 - REASON: Known command and control (C2) server for 'ShadowNet' botnet, observed attempting to exploit CVE-2023-12345.
+2025-10-01T11:45:39.508571 - [ACTION] - BLOCK IP: 198.51.100.78 - REASON: Known command and control (C2) server for 'ShadowNet' botnet, observed attempting to exploit CVE-2023-12345.
+2025-10-01T11:45:45.567383 - [ACTION] - BLOCK IP: 198.51.100.78 - REASON: Known command and control (C2) server for 'ShadowNet' botnet, observed attempting to exploit CVE-2023-12345.
+2025-10-01T11:45:50.447397 - [ACTION] - BLOCK IP: 198.51.100.78 - REASON: Known command and control (C2) server for 'ShadowNet' botnet, observed attempting to exploit CVE-2023-12345.
+2025-10-01T11:45:56.298425 - [ACTION] - BLOCK IP: 203.0.113.55 - REASON: Known command and control (C2) server for the 'ViperBot' malware, observed attempting to exfiltrate data.
+2025-10-01T11:46:03.369359 - [ACTION] - BLOCK IP: 203.0.113.55 - REASON: Known command and control (C2) server for the 'ViperBot' malware, observed attempting to exfiltrate data.
+2025-10-01T11:46:09.141466 - [ACTION] - BLOCK IP: 203.0.113.55 - REASON: Known command and control (C2) server for the 'ViperBot' malware, observed attempting to exfiltrate data.
+2025-10-01T11:46:16.298042 - [ACTION] - BLOCK IP: 203.0.113.55 - REASON: Known command and control (C2) server for the 'ViperBot' malware, observed attempting to exfiltrate data.
+2025-10-01T11:46:21.275109 - [ACTION] - BLOCK IP: 203.0.113.55 - REASON: Known command and control (C2) server for the 'ViperBot' malware, observed attempting to exfiltrate data.
+2025-10-01T11:46:30.034592 - [ACTION] - BLOCK IP: 203.0.113.78 - REASON: High Risk threat assessment. IP found on threat intelligence feed.
+2025-10-01T11:48:02.061241 - [ACTION] - BLOCK IP: 198.51.100.12 - REASON: High Risk threat assessment. IP found on threat intelligence feed.
+2025-10-01T11:48:34.811915 - [ACTION] - BLOCK IP: 198.51.100.210 - REASON: High Risk threat assessment. Confirmed C2 server communication.
+2025-10-01T11:48:53.042804 - [ACTION] - BLOCK IP: 198.51.100.99 - REASON: High Risk threat assessment. IP address is a known source of ransomware distribution.
+2025-10-01T11:49:09.586015 - [ACTION] - BLOCK IP: 198.51.100.150 - REASON: High Risk threat assessment. Confirmed malware hosting server.
+2025-10-01T11:49:28.158997 - [ACTION] - BLOCK IP: 198.51.100.33 - REASON: High Risk threat assessment. Confirmed phishing source.
+2025-10-01T11:50:30.555636 - [ACTION] - BLOCK IP: 192.168.1.100 - REASON: Identified as the source of a brute-force SSH attack against public-facing servers.
+2025-10-01T11:53:50.785903 - [ACTION] - BLOCK IP: 198.51.100.78 - REASON: Known command and control (C2) server for 'ShadowNet' botnet, observed attempting to exploit CVE-2023-12345.
+2025-10-01T11:53:58.557550 - [ACTION] - BLOCK IP: 198.51.100.78 - REASON: Known command and control (C2) server for 'ShadowNet' botnet, observed attempting to exploit CVE-2023-12345.
+2025-10-01T11:54:06.850485 - [ACTION] - BLOCK IP: 203.0.113.55 - REASON: Known command and control (C2) server for the 'ViperBot' malware family, observed attempting to exfiltrate data.
+2025-10-01T11:54:12.278121 - [ACTION] - BLOCK IP: 203.0.113.55 - REASON: Known command and control (C2) server for the 'ViperBot' malware family, observed attempting to exfiltrate data.
+2025-10-01T11:54:22.454780 - [ACTION] - BLOCK IP: 203.0.113.55 - REASON: Known command and control (C2) server for the 'ViperBot' malware family, observed attempting to exfiltrate data.
+2025-10-01T11:54:31.963342 - [ACTION] - BLOCK IP: 203.0.113.55 - REASON: Known command and control (C2) server for the 'ViperBot' malware family, observed attempting to exfiltrate data.
+2025-10-01T11:54:40.045927 - [ACTION] - BLOCK IP: 198.51.100.78 - REASON: Known command and control (C2) server for 'ShadowNet' botnet, observed attempting to exploit CVE-2023-12345.
+2025-10-01T11:54:48.957231 - [ACTION] - BLOCK IP: 198.51.100.78 - REASON: Known command and control (C2) server for 'ShadowNet' botnet, observed attempting to exploit CVE-2023-12345.
+2025-10-01T11:54:56.445958 - [ACTION] - BLOCK IP: 198.51.100.78 - REASON: Known command and control (C2) server for 'ShadowNet' botnet, observed attempting to exploit CVE-2023-12345.
+2025-10-01T12:08:42.959771 - [ACTION] - BLOCK IP: 104.28.14.55 - REASON: High Risk: Associated with phishing and malware distribution. AbuseIPDB score is 100.
+2025-10-01T12:08:54.436602 - [ACTION] - BLOCK IP: 198.51.100.10 - REASON: High Risk: Known command-and-control (C2) server for the 'Zeus' botnet, observed exploiting CVE-2021-44228 (Log4Shell). AbuseIPDB score is 100.
+2025-10-01T12:09:05.946899 - [ACTION] - BLOCK IP: 198.51.100.10 - REASON: High Risk: Known command-and-control (C2) server for the 'Zeus' botnet, observed exploiting CVE-2021-44228 (Log4Shell). AbuseIPDB score is 100.
+2025-10-01T12:09:12.076658 - [ACTION] - BLOCK IP: 203.0.113.42 - REASON: High Risk: Known command-and-control (C2) server for the 'Zeus' botnet, actively exploiting CVE-2021-44228 (Log4Shell). AbuseIPDB score is 100.
+2025-10-01T12:09:17.097043 - [ACTION] - BLOCK IP: 198.51.100.10 - REASON: High Risk: Known command-and-control (C2) server for the 'Zeus' botnet. Actively observed exploiting CVE-2021-44228 (Log4Shell). AbuseIPDB score is 100.
+2025-10-01T12:09:22.509149 - [ACTION] - BLOCK IP: 198.51.100.10 - REASON: High Risk: Known command-and-control (C2) server for the 'Zeus' botnet. Actively observed exploiting CVE-2021-44228 (Log4Shell). AbuseIPDB score is 100.
+2025-10-01T13:24:11.341733 - [ACTION] - BLOCK IP: 198.51.100.12 - REASON: IP found on threat intelligence feed.
+2025-10-01T13:24:19.819483 - [ACTION] - BLOCK IP: 203.0.113.78 - REASON: IP found on threat intelligence feed.
+2025-10-01T14:02:04.382754 - [ACTION] - BLOCK IP: 194.38.104.218 - REASON: IP found on threat intelligence feed.
+2025-10-01T14:02:12.996273 - [ACTION] - BLOCK IP: 162.213.250.124 - REASON: IP found on threat intelligence feed.
