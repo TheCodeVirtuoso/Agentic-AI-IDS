@@ -109,10 +109,21 @@ def run_soc_orchestrator(model, scaler, data_features):
                 print(f"\n--- TEST CASE #{test_case_count}: IP {current_test_ip} (Row {index}) ---")
                 
                 print(f"[STAGE 1] Triggering Anomaly Agent for IP: {current_test_ip}...")
+
+                import datetime
+                start_time = datetime.datetime.now()
                 
                 # --- Anomaly Agent Execution (FIXED ASSIGNMENT) ---
                 report_dict = anomaly_agent_executor.invoke({"input": current_test_ip})
                 investigation_report = report_dict['output'] # <-- CORRECTLY ASSIGNED
+
+                end_time = datetime.datetime.now()
+                duration = (end_time - start_time).total_seconds()
+
+                # Log investigation time and success (assuming success if no exception)
+                log_line = f"{datetime.datetime.now().isoformat()} - INVESTIGATION - IP: {current_test_ip} - Duration: {duration} - Status: Success\n"
+                with open("investigation_times.log", "a") as log_file:
+                    log_file.write(log_line)
 
                 # Generate explanation for anomaly
                 explanation = explain_anomaly(model, scaler, data_features, index)
