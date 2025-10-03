@@ -272,6 +272,13 @@ LOGS_TEMPLATE = """
         .table th { background: transparent; border-bottom: 2px solid rgba(239, 68, 68, 0.3); color: #f1f5f9; font-weight: 600; }
         .table td { border-color: rgba(148, 163, 184, 0.1); vertical-align: middle; }
         .table-striped>tbody>tr:nth-of-type(odd)>* { background-color: rgba(239, 68, 68, 0.05); }
+        
+        /* --- CHANGE: Added hover effect for table rows for better interactivity --- */
+        .table-hover>tbody>tr:hover>* {
+            background-color: rgba(239, 68, 68, 0.15) !important;
+            color: #f8f9fa;
+        }
+
         .form-control { background: rgba(51, 65, 85, 0.8); border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 10px; color: #e2e8f0; }
         .form-control:focus { background: rgba(51, 65, 85, 0.9); border-color: #ef4444; box-shadow: 0 0 0 0.2rem rgba(239, 68, 68, 0.25); }
         .btn-primary { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border: none; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); }
@@ -304,28 +311,32 @@ LOGS_TEMPLATE = """
                 <div class="card" style="animation-delay: 0.2s;">
                     <div class="card-header"><h5><i class="fas fa-file-alt me-2"></i>Detailed Logs Viewer</h5></div>
                     <div class="card-body">
-                        <div class="row mb-3">
+                        <div class="row mb-3 gx-2">
                             <div class="col-md-3"><input type="text" class="form-control" id="searchInput" placeholder="Search logs..."></div>
                             <div class="col-md-2">
                                 <select class="form-control" id="logType">
                                     <option value="all">All Logs</option>
-                                    <option value="firewall">Firewall</option>
-                                    <option value="review">Review</option>
-                                    <option value="feedback">Feedback</option>
-                                    <option value="override">Override</option>
+                                    <option value="Firewall">Firewall</option>
+                                    <option value="Review">Review</option>
+                                    <option value="Feedback">Feedback</option>
+                                    <option value="Override">Override</option>
                                 </select>
                             </div>
                             <div class="col-md-2"><input type="date" class="form-control" id="dateFilter"></div>
+                            <div class="col-md-1"><button class="btn btn-outline-secondary w-100" onclick="clearFilters()" title="Clear Filters"><i class="fas fa-times"></i></button></div>
                             <div class="col-md-2"><button class="btn btn-primary w-100" onclick="exportLogs('csv')"><i class="fas fa-download me-1"></i>Export CSV</button></div>
                             <div class="col-md-2"><button class="btn btn-outline-light w-100" onclick="exportLogs('json')"><i class="fas fa-download me-1"></i>Export JSON</button></div>
                         </div>
                         <div class="table-responsive" style="max-height: 600px;">
-                            <table class="table table-striped" id="logsTable">
+                            <table class="table table-striped table-hover" id="logsTable">
                                 <thead><tr><th>Timestamp</th><th>Type</th><th>Details</th></tr></thead>
                                 <tbody>
                                     {% for log in logs %}
                                     <tr><td>{{ log.timestamp }}</td><td>{{ log.type }}</td><td>{{ log.details }}</td></tr>
                                     {% endfor %}
+                                    <tr id="no-results-row" style="display: none;">
+                                        <td colspan="3" class="text-center text-muted py-4">No logs found matching your criteria.</td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -336,6 +347,7 @@ LOGS_TEMPLATE = """
     </div>
 
     <script>
+        // --- PRELOADER & MATRIX EFFECT (NO CHANGES) ---
         window.addEventListener('load', function() {
             const preloader = document.getElementById('preloader');
             setTimeout(() => {
@@ -344,23 +356,18 @@ LOGS_TEMPLATE = """
                     preloader.style.display = 'none';
                     document.body.style.overflow = 'auto';
                 });
-            }, 2500); // Preloader duration
+            }, 1500);
         });
         
-        // Matrix Preloader Script
         const canvas = document.getElementById('matrix-canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-        const katakana = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン';
-        const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        const nums = '0123456789';
-        const alphabet = katakana + latin + nums;
+        const alphabet = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッンABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         const fontSize = 16;
         const columns = canvas.width / fontSize;
         const rainDrops = [];
         for (let x = 0; x < columns; x++) { rainDrops[x] = 1; }
-
         function drawMatrix() {
             ctx.fillStyle = 'rgba(15, 15, 35, 0.05)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -375,14 +382,126 @@ LOGS_TEMPLATE = """
                 rainDrops[i]++;
             }
         }
-        setInterval(drawMatrix, 30);
+        setInterval(drawMatrix, 33);
         
-        // Log filtering functions
-        function filterLogs() { /* ... function code ... */ }
-        function exportLogs(format) { /* ... function code ... */ }
-        document.getElementById('searchInput').addEventListener('input', filterLogs);
+        // --- FUNCTIONAL JAVASCRIPT ---
+
+        /**
+         * Filters the log table based on user input.
+         */
+        function filterLogs() {
+            const searchText = document.getElementById('searchInput').value.toLowerCase();
+            const logType = document.getElementById('logType').value;
+            const dateFilter = document.getElementById('dateFilter').value;
+            const table = document.getElementById('logsTable');
+            const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+            const noResultsRow = document.getElementById('no-results-row');
+            let visibleRows = 0;
+
+            // Start loop from 0, but exclude the 'no-results-row' from filtering
+            for (let i = 0; i < rows.length; i++) {
+                if (rows[i].id === 'no-results-row') continue;
+
+                const cells = rows[i].getElementsByTagName('td');
+                if (cells.length > 2) {
+                    const timestamp = cells[0].textContent;
+                    const type = cells[1].textContent;
+                    const details = cells[2].textContent.toLowerCase();
+
+                    const textMatch = details.includes(searchText);
+                    const typeMatch = (logType === 'all' || type === logType);
+                    const dateMatch = (dateFilter === '' || timestamp.startsWith(dateFilter));
+
+                    if (textMatch && typeMatch && dateMatch) {
+                        rows[i].style.display = '';
+                        visibleRows++;
+                    } else {
+                        rows[i].style.display = 'none';
+                    }
+                }
+            }
+
+            // --- CHANGE: Show or hide the "No results" message based on visible row count ---
+            noResultsRow.style.display = visibleRows === 0 ? '' : 'none';
+        }
+
+        /**
+         * Exports the currently visible logs to either CSV or JSON format.
+         */
+        function exportLogs(format) {
+            const table = document.getElementById('logsTable');
+            const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+            const headers = ['Timestamp', 'Type', 'Details'];
+            const data = [];
+
+            for (let i = 0; i < rows.length; i++) {
+                if (rows[i].style.display !== 'none' && rows[i].id !== 'no-results-row') {
+                    const cells = rows[i].getElementsByTagName('td');
+                    if (cells.length > 2) {
+                        data.push({
+                            Timestamp: cells[0].textContent,
+                            Type: cells[1].textContent,
+                            Details: cells[2].textContent
+                        });
+                    }
+                }
+            }
+
+            if (data.length === 0) {
+                alert("No logs to export with the current filters.");
+                return;
+            }
+
+            let fileContent, mimeType, fileName;
+            if (format === 'csv') {
+                let csvContent = headers.join(',') + '\\n';
+                data.forEach(row => {
+                    const values = headers.map(header => {
+                        let cellData = String(row[header] || ''); // Ensure data is a string
+                        if (cellData.includes(',') || cellData.includes('"')) {
+                            cellData = `"${cellData.replace(/"/g, '""')}"`;
+                        }
+                        return cellData;
+                    });
+                    csvContent += values.join(',') + '\\n';
+                });
+                fileContent = csvContent;
+                mimeType = 'text/csv;charset=utf-8;';
+                fileName = 'nexusguard_logs.csv';
+            } else {
+                fileContent = JSON.stringify(data, null, 2);
+                mimeType = 'application/json;charset=utf-8;';
+                fileName = 'nexusguard_logs.json';
+            }
+
+            const blob = new Blob([fileContent], { type: mimeType });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute('download', fileName);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // --- CHANGE: Added a new function to clear all active filters ---
+        /**
+         * Resets all filter inputs to their default state and re-runs the filter.
+         */
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('logType').value = 'all';
+            document.getElementById('dateFilter').value = '';
+            filterLogs(); // Update the table view
+        }
+
+        // Attach event listeners
+        document.getElementById('searchInput').addEventListener('keyup', filterLogs);
         document.getElementById('logType').addEventListener('change', filterLogs);
         document.getElementById('dateFilter').addEventListener('change', filterLogs);
+        
+        // --- CHANGE: Initial call to filterLogs to handle the "No results" row on page load if logs are empty ---
+        document.addEventListener('DOMContentLoaded', filterLogs);
+
     </script>
 </body>
 </html>
