@@ -1042,192 +1042,185 @@ HTML_TEMPLATE = """
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Dark theme with animated gradient background */
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes fadeInLeft {
-            from { opacity: 0; transform: translateX(-30px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes fadeInRight {
-            from { opacity: 0; transform: translateX(30px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes scaleIn {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
-        }
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-        }
+    /* --- Core Theme & Animations --- */
+    @keyframes gradientBG {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeInLeft {
+        from { opacity: 0; transform: translateX(-30px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes fadeInRight {
+        from { opacity: 0; transform: translateX(30px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes pulse-red {
+        0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+        70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
 
-        body {
-            background: linear-gradient(-45deg, #0f0f23, #1a1a2e, #16213e, #0f0f23);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
-            min-height: 100vh;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #e2e8f0;
-             /* Prevent scrollbars during preloader */
-        }
-        
-        
+    body {
+        background: linear-gradient(-45deg, #0f0f23, #1a1a2e, #16213e, #0f0f23);
+        background-size: 400% 400%;
+        animation: gradientBG 15s ease infinite;
+        min-height: 100vh;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: #e2e8f0;
+    }
 
-        /* --- Custom Scrollbar --- */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #1e293b; }
-        ::-webkit-scrollbar-thumb { background: #4a5568; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #60a5fa; }
+    /* --- Custom Scrollbar (Red Theme) --- */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #1e293b; }
+    ::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #ef4444; }
 
-        /* --- Animations --- */
-        .animate-fade-in-up { animation: fadeInUp 0.8s ease-out forwards; opacity: 0; }
-        .animate-fade-in-left { animation: fadeInLeft 0.8s ease-out forwards; opacity: 0; }
-        .animate-fade-in-right { animation: fadeInRight 0.8s ease-out forwards; opacity: 0; }
-        .animate-scale-in { animation: scaleIn 0.6s ease-out forwards; opacity: 0; }
-        .delay-1 { animation-delay: 0.1s; }
-        .delay-2 { animation-delay: 0.2s; }
-        .delay-3 { animation-delay: 0.3s; }
-        .delay-4 { animation-delay: 0.4s; }
-        .delay-5 { animation-delay: 0.5s; }
+    /* --- Animations --- */
+    .animate-fade-in-up { animation: fadeInUp 0.8s ease-out forwards; opacity: 0; }
+    .animate-fade-in-left { animation: fadeInLeft 0.8s ease-out forwards; opacity: 0; }
+    .animate-fade-in-right { animation: fadeInRight 0.8s ease-out forwards; opacity: 0; }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+    .delay-5 { animation-delay: 0.5s; }
 
-        /* --- Glassmorphism Navbar --- */
-        .navbar {
-            background: rgba(30, 41, 59, 0.7) !important;
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
-        }
-        .navbar-brand {
-            color: #60a5fa !important;
-            font-weight: 700;
-            text-shadow: 0 0 10px rgba(96, 165, 250, 0.5);
-        }
+    /* --- NexusGuard AI Navbar (Red Theme) --- */
+    .navbar {
+        background: rgba(15, 15, 35, 0.7) !important;
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+        padding: 0.75rem 1.5rem;
+    }
+    .navbar-brand {
+        color: #ef4444 !important;
+        font-weight: 700;
+        text-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
+    }
+    .nav-button {
+        background-color: transparent;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #f87171;
+        padding: 0.5rem 1rem;
+        margin: 0 0.25rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+    .nav-button:hover {
+        background-color: rgba(239, 68, 68, 0.2);
+        color: #fff;
+        transform: translateY(-2px);
+        text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    }
+    .nav-button.active {
+        background-color: #ef4444;
+        border-color: #ef4444;
+        color: #fff;
+        font-weight: 500;
+        box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+    }
 
-        /* --- Enhanced Card Styling --- */
-        .card {
-            background: rgba(30, 41, 59, 0.9);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(148, 163, 184, 0.1);
-            border-radius: 15px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-            margin-bottom: 20px;
-        }
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
-            border-color: rgba(96, 165, 250, 0.3);
-        }
-        .card-header {
-            border-radius: 15px 15px 0 0 !important;
-            border: none;
-            font-weight: 600;
-            background: rgba(51, 65, 85, 0.8) !important;
-            color: #f1f5f9 !important;
-            padding: 1rem 1.25rem;
-        }
-        .card-body { color: #cbd5e1; }
-        
-        /* --- Table Styling --- */
-        .table { color: #e2e8f0; border-collapse: separate; border-spacing: 0; }
-        .table th, .table td {
-            border: none;
-            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
-            padding: 0.9rem;
-        }
-        .table th {
-            background: transparent;
-            color: #f1f5f9;
-            font-weight: 600;
-        }
-        .table-responsive { max-height: 400px; overflow-y: auto; }
-        
-        /* --- Enhanced Stats Card --- */
-        .stats-card-body .stat-item {
-            display: flex;
-            align-items: center;
-            margin: 1rem 0;
-            padding: 0.5rem;
-            border-radius: 10px;
-            background: rgba(0,0,0,0.1);
-        }
-        .stats-card-body .stat-item i {
-            font-size: 1.75rem;
-            margin-right: 15px;
-            width: 40px;
-            text-align: center;
-            color: #94a3b8;
-        }
-        .stats-card-body .stat-item .stat-info {
-            flex-grow: 1;
-        }
-        .stats-card-body .stat-item .stat-info span {
-            display: block;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #60a5fa;
-        }
-        
-        /* --- Buttons and Badges --- */
-        .btn-override {
-            margin: 2px;
-            transition: all 0.3s ease;
-            border: none;
-            text-shadow: 0 0 8px rgba(0,0,0,0.5);
-        }
-        .btn-override:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-            border: none; border-radius: 10px; color: white;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-        }
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
-        }
-        .badge { font-size: 0.8em; padding: 0.5em 0.75em; }
+    #live-clock {
+        color: #94a3b8;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 1rem;
+        margin-right: 1rem;
+        background: rgba(0,0,0,0.2);
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        border: 1px solid rgba(148, 163, 184, 0.1);
+    }
+    
 
-        /* --- Header Gradients and Colors --- */
-        .card-header.bg-danger { animation: pulse 2s infinite; background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important; }
-        .card-header.bg-warning { background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important; }
-        .card-header.bg-info { background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%) !important; }
-        .card-header.bg-success { background: linear-gradient(135deg, #059669 0%, #047857 100%) !important; }
-        .card-header.bg-secondary { background: linear-gradient(135deg, #4b5563 0%, #374151 100%) !important; }
-        .text-white { color: #f1f5f9 !important; }
-        .text-dark { color: #1e293b !important; }
-    </style>
+    /* --- Enhanced Card Styling (Red Theme) --- */
+    .card {
+        background: rgba(30, 41, 59, 0.9);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(148, 163, 184, 0.1);
+        border-radius: 15px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease;
+        margin-bottom: 20px;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+        border-color: rgba(239, 68, 68, 0.3);
+    }
+    .card-header {
+        border-radius: 15px 15px 0 0 !important;
+        border-bottom: 1px solid rgba(239, 68, 68, 0.2) !important;
+        font-weight: 600;
+        background: rgba(51, 65, 85, 0.8) !important;
+        color: #f1f5f9 !important;
+        padding: 1rem 1.25rem;
+    }
+    .card-body { color: #cbd5e1; }
+
+    /* --- Table Styling --- */
+    .table { color: #e2e8f0; }
+    .table th, .table td { border-bottom: 1px solid rgba(148, 163, 184, 0.1); padding: 0.9rem; }
+    .table th { font-weight: 600; color: #f1f5f9; }
+    .table-responsive { max-height: 400px; overflow-y: auto; }
+
+    /* --- Enhanced Stats Card (Red Theme) --- */
+    .stats-card-body .stat-item span {
+        font-weight: 700;
+        color: #f87171; /* Highlight numbers in red */
+    }
+
+    /* --- Buttons and Badges (Red Theme) --- */
+    .btn-primary {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        border: none;
+        border-radius: 10px;
+        color: white;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+    }
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+    }
+    .badge { font-size: 0.8em; padding: 0.5em 0.75em; }
+
+    /* --- Header Gradients and Colors --- */
+    .card-header.bg-danger { animation: pulse-red 2s infinite; background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important; }
+    .card-header.bg-warning { background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important; color: #fff !important; }
+    .card-header.bg-info { background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%) !important; }
+    .card-header.bg-success { background: linear-gradient(135deg, #059669 0%, #047857 100%) !important; }
+    .card-header.bg-secondary { background: linear-gradient(135deg, #4b5563 0%, #374151 100%) !important; }
+    .text-white { color: #f1f5f9 !important; }
+    .text-dark { color: #1e293b !important; }
+</style>
 </head>
 <body>
 
     <nav class="navbar navbar-dark">
-        <div class="container-fluid">
-            <span class="navbar-brand mb-0 h1">
-                <i class="fas fa-shield-alt me-2"></i>CN-Agentic-IDS
-            </span>
-            <div>
-                <a href="/dashboard" class="btn btn-outline-light me-2"><i class="fas fa-home me-1"></i>Dashboard</a>
-                <a href="/logs" class="btn btn-outline-light me-2"><i class="fas fa-file-alt me-1"></i>Logs</a>
-                <a href="/blockchain_logs" class="btn btn-outline-light me-2"><i class="fas fa-link me-1"></i>Blockchain</a>
-                <a href="/agents" class="btn btn-outline-light me-2"><i class="fas fa-robot me-1"></i>Agents</a>
-                <a href="/settings" class="btn btn-outline-light me-2"><i class="fas fa-cog me-1"></i>Settings</a>
-                <a href="/logout" class="btn btn-outline-danger"><i class="fas fa-sign-out-alt me-1"></i>Logout</a>
-            </div>
+    <div class="container-fluid">
+        <span class="navbar-brand mb-0 h1">
+            <i class="fas fa-shield-virus me-2"></i>NexusGuard AI
+        </span>
+        <div class="d-flex align-items-center">
+            <span id="live-clock"></span>
+            <a href="/dashboard" class="nav-button active"><i class="fas fa-home me-1"></i>Dashboard</a>
+            <a href="/logs" class="nav-button"><i class="fas fa-file-alt me-1"></i>Logs</a>
+            <a href="/blockchain_logs" class="nav-button"><i class="fas fa-link me-1"></i>Blockchain</a>
+            <a href="/agents" class="nav-button"><i class="fas fa-robot me-1"></i>Agents</a>
+            <a href="/settings" class="nav-button"><i class="fas fa-cog me-1"></i>Settings</a>
+            <a href="/logout" class="nav-button"><i class="fas fa-sign-out-alt me-1"></i>Logout</a>
         </div>
-    </nav>
-
+    </div>
+</nav>
     <div class="container mt-4">
         <div class="row">
             <div class="col-lg-7">
@@ -1449,6 +1442,32 @@ HTML_TEMPLATE = """
         // Polling is disabled in this static example, but the function is here.
         // setInterval(updateDashboard, 10000);
         </script>
+        <script>
+    // Live Clock Functionality
+    function updateClock() {
+        const clockElement = document.getElementById('live-clock');
+        if (clockElement) {
+            const now = new Date();
+            const options = {
+                timeZone: 'Asia/Kolkata',
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+            };
+            clockElement.textContent = now.toLocaleString('en-IN', options);
+        }
+    }
+
+    // Update the clock every second
+    document.addEventListener('DOMContentLoaded', function() {
+        updateClock(); // Initial call
+        setInterval(updateClock, 1000);
+    });
+</script>
 </body>
 </html>
 """
@@ -1487,20 +1506,28 @@ def parse_log_file(filepath):
 def login():
     if request.method == 'POST':
         password = request.form.get('password')
-        if password == 'admin123':  # Simple password for demo
+        if password == 'admin123': # Simple password for demo
             session['logged_in'] = True
             session['login_success'] = True
-            return redirect(url_for('index'))
+            # <--- FIX: Redirect to the new preloader route instead of the dashboard directly --->
+            return redirect(url_for('preloader'))
         else:
             return render_template_string(LOGIN_TEMPLATE, error='Invalid password')
-    # Ensure login page renders correctly on GET
     return render_template_string(LOGIN_TEMPLATE)
 
-@app.route('/dashboard')
-def index():
-    # Redirect to login page if not logged in
+# <--- FIX: New route for the preloader page --->
+@app.route('/preloader')
+def preloader():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
+    return render_template_string(PRELOADER_TEMPLATE)
+
+# <--- FIX: Renamed route from '/' to '/dashboard' for clarity --->
+@app.route('/dashboard')
+def dashboard():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    
     firewall_entries = parse_log_file(FIREWALL_LOG)
     review_entries = parse_log_file(REVIEW_LOG)
     firewall_count = len(firewall_entries)
@@ -1508,7 +1535,16 @@ def index():
     feedback_count = sum(1 for line in open(FEEDBACK_LOG) if line.strip()) if os.path.exists(FEEDBACK_LOG) else 0
     login_success = session.pop('login_success', False)
     feedback_success = session.pop('feedback_success', False)
-    return render_template_string(HTML_TEMPLATE, firewall_entries=firewall_entries, review_entries=review_entries, firewall_count=firewall_count, review_count=review_count, feedback_count=feedback_count, login_success=login_success, feedback_success=feedback_success)
+    
+    return render_template_string(HTML_TEMPLATE, 
+                                  firewall_entries=firewall_entries, 
+                                  review_entries=review_entries, 
+                                  firewall_count=firewall_count, 
+                                  review_count=review_count, 
+                                  feedback_count=feedback_count, 
+                                  login_success=login_success, 
+                                  feedback_success=feedback_success)
+
 
 @app.route('/logout')
 def logout():
@@ -1520,13 +1556,14 @@ def override():
     data = request.get_json()
     ip = data.get('ip')
     action = data.get('action')
+    
     # Simulate override action (e.g., log it or call a tool)
     log_message = f"{datetime.now().isoformat()} - [OVERRIDE] - {action.upper()} IP: {ip}"
     with open('override_actions.log', 'a') as f:
         f.write(log_message + '\n')
-    return {'message': f'Override action {action} for IP {ip} logged.'}
-    add_log_to_blockchain(f"Manual Override: User performed '{action.upper()}' on IP {ip}.")
     
+    # <--- FIX: Moved unreachable code before the return statement --->
+    add_log_to_blockchain(f"Manual Override: User performed '{action.upper()}' on IP {ip}.")
     return jsonify({'message': f'Override action {action} for IP {ip} logged.'})
 
 
@@ -1538,7 +1575,10 @@ def submit_feedback():
     with open(FEEDBACK_LOG, 'a') as f:
         f.write(log_message + '\n')
     session['feedback_success'] = True
-    return redirect(url_for('index'))
+    # <--- FIX: Updated to redirect to the renamed 'dashboard' route --->
+    return redirect(url_for('dashboard'))
+
+
 
 @app.route('/logs')
 def logs():

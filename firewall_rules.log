@@ -55,3 +55,6 @@
 2025-10-01T15:17:41.246569 - [ACTION] - BLOCK IP: 198.58.102.172 - REASON: IP found on threat intelligence feed.
 2025-10-01T15:17:58.905140 - [ACTION] - BLOCK IP: 203.0.113.78 - REASON: IP found on threat intelligence feed.
 2025-10-01T16:10:40.113460 - [ACTION] - BLOCK IP: 45.141.215.115 - REASON: High risk threat detected by GNN model (anomaly score: 0.94)
+2025-10-03T08:27:11.715046 - [ACTION] - BLOCK IP: 198.154.224.48 - REASON: IP found on threat intelligence feed.
+2025-10-03T09:55:32.335364 - [ACTION] - BLOCK IP: 64.227.170.229 - REASON: High Risk threat assessment based on Abuse Confidence Score of 100/100 from 6,686 reports.
+2025-10-03T10:11:55.326837 - [ACTION] - BLOCK IP: 63.135.161.157 - REASON: High Risk threat assessment: High Abuse Confidence Score (85/100) and anonymous WHOIS information.
