@@ -71,7 +71,61 @@ def check_ip_reputation(ip_address: str) -> str:
         return f"An unexpected error occurred while checking IP reputation: {e}"
 
 # ==============================================================================
-# TOOL 2: WHOIS LOOKUP
+# TOOL 2: VIRUSTOTAL IP CHECK
+# ==============================================================================
+@tool
+def check_virustotal(ip_address: str) -> str:
+    """
+    Checks the reputation of an IP address using the VirusTotal API.
+    This provides a second, valuable source of threat intelligence.
+    
+    Args:
+        ip_address: The IPv4 address to check.
+
+    Returns:
+        A formatted string summarizing the VirusTotal report.
+    """
+    api_key = os.getenv("VIRUSTOTAL_API_KEY")
+    if not api_key:
+        return "Error: VirusTotal API key not found. Please set VIRUSTOTAL_API_KEY in the .env file."
+
+    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ip_address}"
+    headers = {
+        "accept": "application/json",
+        "x-apikey": api_key
+    }
+
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        data = response.json().get('data', {}).get('attributes', {})
+
+        if not data:
+            return f"No data found for IP {ip_address} on VirusTotal."
+
+        last_analysis_stats = data.get('last_analysis_stats', {})
+        malicious_count = last_analysis_stats.get('malicious', 0)
+        
+        if malicious_count == 0:
+            return f"IP {ip_address} is considered clean by VirusTotal. Malicious engines: 0."
+
+        summary = (
+            f"IP {ip_address} is FLAGGED by VirusTotal.\n"
+            f"- Malicious Engines: {malicious_count}\n"
+            f"- Harmless Engines: {last_analysis_stats.get('harmless', 0)}\n"
+            f"- Undetected Engines: {last_analysis_stats.get('undetected', 0)}\n"
+            f"- Reputation Score: {data.get('reputation', 'N/A')}\n"
+            f"- Owner: {data.get('as_owner', 'N/A')}"
+        )
+        return summary
+
+    except requests.exceptions.RequestException as e:
+        return f"Error: Could not connect to the VirusTotal API. Details: {e}"
+    except Exception as e:
+        return f"An unexpected error occurred while checking VirusTotal: {e}"
+
+# ==============================================================================
+# TOOL 3: WHOIS LOOKUP
 # ==============================================================================
 @tool
 def get_whois_info(domain_or_ip: str) -> str:
@@ -119,7 +173,7 @@ def get_whois_info(domain_or_ip: str) -> str:
 # TOOL 3: SIMULATED FIREWALL BLOCK (Robust Fix)
 # ==============================================================================
 @tool
-def create_firewall_block_rule(input_json_string: str) -> str:
+def create_firewall_block_rule(input_json_string: str, agent_name: str = "Coordinator Agent") -> str:
     """
     Simulates creating a firewall rule to block an IP address.
     This tool takes a single JSON string argument, which MUST be a JSON object
@@ -143,7 +197,7 @@ def create_firewall_block_rule(input_json_string: str) -> str:
     if not ip_address or not reason:
         return "Error: Firewall input must contain 'ip_address' and 'reason' keys."
         
-    log_message = f"{datetime.datetime.now().isoformat()} - [ACTION] - BLOCK IP: {ip_address} - REASON: {reason}"
+    log_message = f"{datetime.datetime.now().isoformat()} - [ACTION] - AGENT: {agent_name} - BLOCK IP: {ip_address} - REASON: {reason}"
     print(log_message)
     try:
         with open("firewall_rules.log", "a") as f: f.write(log_message + "\n")
@@ -157,7 +211,7 @@ def create_firewall_block_rule(input_json_string: str) -> str:
 # TOOL 4: HUMAN REVIEW QUEUE (CRITICAL FIX APPLIED HERE)
 # ==============================================================================
 @tool
-def log_for_human_review(input_json_string: str) -> str:
+def log_for_human_review(input_json_string: str, agent_name: str = "Coordinator Agent") -> str:
     """
     Logs an incident to the human review queue when autonomous action is not taken.
     The input MUST be a JSON string containing 'ip_address', 'threat_level', and 'report_summary'.
@@ -182,7 +236,7 @@ def log_for_human_review(input_json_string: str) -> str:
         return "Error: HIL input is missing 'ip_address'."
 
     log_message = (
-        f"{datetime.datetime.now().isoformat()} - [REVIEW] - LEVEL: {threat_level} - IP: {ip_address} - SUMMARY: {report_summary}"
+        f"{datetime.datetime.now().isoformat()} - [REVIEW] - AGENT: {agent_name} - LEVEL: {threat_level} - IP: {ip_address} - SUMMARY: {report_summary}"
     )
     
     # Append to a dedicated log file
@@ -307,12 +361,13 @@ def get_blockchain_logs() -> str:
 # TOOL 7: TASK COMPLETION TOOL
 # ==============================================================================
 @tool
-def end_task() -> str:
+def end_task(final_input: str = "") -> str:
     """
-    Use this tool as your final action when you have successfully completed your task
-    (either by blocking an IP or logging it for human review) and no further
-    action is required. This will end the current operation.
+    Use this tool as your final action when you have successfully completed your task.
+    It accepts any string input (including an empty one) to ensure the LLM's output
+    does not cause a parsing error.
     """
+    # The logic is simple: always terminate and return the success message.
     return "Task successfully completed and terminated."
 # ==============================================================================
 # TEST BLOCK (No changes made)

@@ -6,7 +6,7 @@ from langchain.memory import ConversationBufferWindowMemory
 from langchain_core.prompts import PromptTemplate
 
 # Import the tools we created in Phase 2.
-from tools import check_ip_reputation, get_whois_info, create_firewall_block_rule, log_for_human_review, end_task, fetch_threat_intelligence, analyze_behavior
+from tools import check_ip_reputation, get_whois_info, create_firewall_block_rule, log_for_human_review, end_task, fetch_threat_intelligence, analyze_behavior, check_virustotal
 
 # Load environment variables from the .env file
 load_dotenv()
@@ -21,9 +21,11 @@ llm = ChatGoogleGenerativeAI(model="gemini-pro-latest",
 # ==============================================================================
 # 2. ANOMALY AGENT (THE "INVESTIGATOR")
 # ==============================================================================
-anomaly_agent_tools = [check_ip_reputation, get_whois_info, analyze_behavior]
+anomaly_agent_tools = [check_ip_reputation, get_whois_info, analyze_behavior, check_virustotal]
+# In agents.py, replace anomaly_prompt_template:
+
 anomaly_prompt_template = """
-You are a cybersecurity analyst AI. Your mission is to investigate a suspicious IP address.
+You are a cybersecurity analyst AI. Your mission is to investigate a suspicious IP address and produce a structured report. You are the "Anomaly Agent".
 
 **Available Tools:**
 {tools}
@@ -33,14 +35,23 @@ When you use a tool, you MUST use the following format:
 Thought: Your reasoning for using a tool.
 Action: The name of the tool to use from this list: [{tool_names}]
 Action Input: The input for the tool (e.g., the IP address)
+
+**SCORING GUIDELINES (USE THESE FOR YOUR FINAL ASSESSMENT):**
+- Start Score at 0.
+- IF Abuse Score > 50: ADD 40 points.
+- IF VirusTotal Malicious Engines > 0: ADD 25 points.
+- IF Abuse Score == 0 AND WHOIS points to a major trusted entity (Google, Cloudflare): SUBTRACT 10 points.
+- IF WHOIS indicates a high-risk hosting provider: ADD 20 points.
+
 When you have gathered all facts, you MUST provide your final answer in this exact format:
-Thought: I have enough information to create the final report.
+Thought: I have calculated the confidence score and have enough information to create the final report.
 Final Answer:
-IP Address: [The IP you investigated]
-Threat Assessment: [High Risk | Medium Risk | Low Risk | Benign]
-Summary:
-[Bullet point of evidence 1]
-Recommendation: [Recommend blocking | Monitor for further activity | No action needed]
+- IP Address: [The IP you investigated]
+- Confidence Score: [The final calculated score out of 100]
+- Threat Assessment: [High Risk | Medium Risk | Low Risk | Benign] (Based on score: > 40 is High, 10-40 is Medium, < 10 is Low/Benign)
+- Summary:
+    - [Bullet point of evidence 1]
+- Recommendation: [Recommend blocking | Monitor for further activity | No action needed]
 **Begin Investigation!**
 **IP to Investigate:** {input}
 **Your Investigation Log:** {agent_scratchpad}
@@ -59,24 +70,28 @@ anomaly_agent_executor = AgentExecutor(agent=anomaly_agent,
 coordinator_tools = [create_firewall_block_rule, log_for_human_review, end_task]
 
 # --- FINAL, ULTIMATE FIX APPLIED HERE ---
+# In agents.py, replace coordinator_prompt_template:
+
 coordinator_prompt_template = """
-You are a coordinator agent. Based on the threat assessment in the report:
+You are a single-step decision-making agent. Your entire purpose is to choose and execute one tool based on the report. You are the "Coordinator Agent".
 
-- If "High Risk", block the IP using create_firewall_block_rule with IP and reason.
-- Otherwise, log for human review using log_for_human_review with IP, threat_level, report_summary.
+**Available Tools (Use only the names listed here: {tool_names}):** 
+{tools}
 
-Then, always end the task with end_task.
+**Your Rules:**
+1.  Review the "Confidence Score" in the report.
+2.  If the "Confidence Score" is greater than 50, you MUST use the `create_firewall_block_rule` tool.
+3.  If the "Confidence Score" is 50 or less, you MUST use the `log_for_human_review` tool.
 
-Use the ReAct format: Thought, Action, Action Input.
+**CRITICAL RESPONSE FORMATTING:**
+You must follow the Action/Action Input format.
 
-Available Tools: {tools}
-
-Tool Names: {tool_names}
-
-Report:
+**Begin Decision Process.**
+**Intelligence Report to Analyze:**
+---
 {input}
-
-{agent_scratchpad}
+---
+Your Decision Log: {agent_scratchpad}
 """
 # --- END FINAL FIX ---
 
@@ -122,9 +137,11 @@ def run_signature_check(processed_ips: set, threat_feed_file: str) -> set:
         if new_threats:
             print(f"Found {len(new_threats)} new threat(s) in feed: {', '.join(new_threats)}")
             for ip in new_threats:
-                report = f"- IP Address: {ip}\n- Threat Assessment: High Risk\n- Summary: IP found on threat intelligence feed.\n- Recommendation: Recommend blocking"
-                print(f"--- [Signature Agent Function] New threat {ip} found. Sending report to Coordinator... ---")
-                coordinator_agent_executor.invoke({"input": report})
+                print(f"--- [Signature Agent Function] New threat {ip} found. Triggering Anomaly Agent for full investigation... ---")
+                report_dict = anomaly_agent_executor.invoke({"input": ip})
+                investigation_report = report_dict['output']
+                print(f"--- [Signature Agent Function] Anomaly Agent investigation complete for {ip}. Sending report to Coordinator... ---")
+                coordinator_agent_executor.invoke({"input": investigation_report})
                 processed_ips.add(ip)
         else: print("--- [Signature Agent Function] No new threats found in feed. ---")
         return processed_ips

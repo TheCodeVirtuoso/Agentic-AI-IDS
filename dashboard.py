@@ -3,9 +3,13 @@ import os
 import json
 from datetime import datetime
 import pytz
-from agents import anomaly_agent_executor, coordinator_agent_executor
+# CRITICAL FIX: Import all three agent components (assuming run_signature_check is the function name)
+from agents import anomaly_agent_executor, coordinator_agent_executor, run_signature_check
 import time
 import hashlib
+from collections import defaultdict
+import re
+
 app = Flask(__name__)
 app.secret_key = 'cn-agentic-ids-secret-key'  # For session management
 # --- 1. BLOCKCHAIN IMPLEMENTATION ---
@@ -935,10 +939,17 @@ AGENTS_TEMPLATE = """
         {% endif %}
 
         <div class="row mt-4">
-            <div class="col-md-6">
+            <div class="col-md-12">
                 <div class="card animate-card delay-4">
                     <div class="card-header">
-                        <h5 class="card-title"><i class="fas fa-chart-line me-2"></i>Agent Activity Chart</h5>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0"><i class="fas fa-chart-line me-2"></i>Agent Activity Chart</h5>
+                            <div class="d-flex align-items-center">
+                                <input type="date" id="startDate" class="form-control form-control-sm me-2" style="width: auto;">
+                                <input type="date" id="endDate" class="form-control form-control-sm me-2" style="width: auto;">
+                                <button id="filterBtn" class="btn btn-primary btn-sm">Filter</button>
+                            </div>
+                        </div>
                     </div>
                     <div class="card-body">
                         <canvas id="agentActivityChart"></canvas>
@@ -1011,17 +1022,30 @@ AGENTS_TEMPLATE = """
             }
         });
         
+        const chartData = {{ chart_data | tojson }};
         const ctx = document.getElementById('agentActivityChart').getContext('2d');
         const agentActivityChart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
-                datasets: [{
-                    label: 'Investigations', data: [65, 59, 80, 81, 56, 55, 40],
-                    borderColor: '#f87171', backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                labels: chartData.labels,
+                datasets: [
+                {
+                    label: 'Anomaly Agent Investigations', data: chartData.datasets['Anomaly Agent'],
+                    borderColor: '#3498db', backgroundColor: 'rgba(52, 152, 219, 0.2)',
                     fill: true, tension: 0.4
-                }, {
-                    label: 'Blocks', data: [28, 48, 40, 19, 86, 27, 90],
+                },
+                {
+                    label: 'Coordinator Agent Investigations', data: chartData.datasets['Coordinator Agent'],
+                    borderColor: '#f1c40f', backgroundColor: 'rgba(241, 196, 15, 0.2)',
+                    fill: true, tension: 0.4
+                },
+                {
+                    label: 'Signature Agent Investigations', data: chartData.datasets['Signature Agent'],
+                    borderColor: '#e74c3c', backgroundColor: 'rgba(231, 76, 60, 0.2)',
+                    fill: true, tension: 0.4
+                },
+                {
+                    label: 'Blocks', data: chartData.datasets['blocks'],
                     borderColor: '#9ca3af', backgroundColor: 'rgba(156, 163, 175, 0.2)',
                     fill: true, tension: 0.4
                 }]
@@ -1039,6 +1063,7 @@ AGENTS_TEMPLATE = """
 </body>
 </html>
 """
+
 # Preloader Template after login
 PRELOADER_TEMPLATE = """
 <!DOCTYPE html>
@@ -1794,7 +1819,7 @@ def api_metrics():
             blocks_count = len(f.readlines())
     avg_response_time = round(total_duration / investigations_count, 2) if investigations_count > 0 else 0
     success_rate = round((success_count / investigations_count) * 100, 2) if investigations_count > 0 else 0
-    return json.dumps({
+    return jsonify({
         'investigations_count': investigations_count,
         'blocks_count': blocks_count,
         'avg_response_time': avg_response_time,
@@ -1802,12 +1827,94 @@ def api_metrics():
     })
 
 
+from collections import defaultdict
 import time
 import re
+
+def get_monthly_activity_data(start_date=None, end_date=None):
+    monthly_data = {
+        'Anomaly Agent': defaultdict(int),
+        'Coordinator Agent': defaultdict(int),
+        'Signature Agent': defaultdict(int),
+        'blocks': defaultdict(int)
+    }
+    
+    start_dt = datetime.strptime(start_date, '%Y-%m-%d') if start_date else None
+    end_dt = datetime.strptime(end_date, '%Y-%m-%d') if end_date else None
+
+    # Process investigations log
+    if os.path.exists(INVESTIGATION_LOG):
+        with open(INVESTIGATION_LOG, 'r') as f:
+            for line in f:
+                try:
+                    timestamp_str = line.split(' - ')[0]
+                    dt = datetime.fromisoformat(timestamp_str.split('T')[0])
+                    
+                    if start_dt and dt.date() < start_dt.date(): continue
+                    if end_dt and dt.date() > end_dt.date(): continue
+
+                    month_key = dt.strftime('%B %Y')
+                    
+                    agent_name = "Unknown Agent"
+                    if "AGENT:" in line:
+                        agent_name = line.split("AGENT: ")[1].split(" - ")[0]
+                    
+                    if agent_name in monthly_data:
+                        monthly_data[agent_name][month_key] += 1
+                except (ValueError, IndexError):
+                    continue
+
+    # Process firewall log
+    if os.path.exists(FIREWALL_LOG):
+        with open(FIREWALL_LOG, 'r') as f:
+            for line in f:
+                try:
+                    timestamp_str = line.split(' - ')[0]
+                    dt = datetime.fromisoformat(timestamp_str.split('T')[0])
+
+                    if start_dt and dt.date() < start_dt.date(): continue
+                    if end_dt and dt.date() > end_dt.date(): continue
+
+                    month_key = dt.strftime('%B %Y')
+                    monthly_data['blocks'][month_key] += 1
+                except (ValueError, IndexError):
+                    continue
+    
+    all_months_keys = set()
+    for agent in monthly_data:
+        all_months_keys.update(monthly_data[agent].keys())
+    
+    if not all_months_keys and start_dt and end_dt:
+        # If no data in range, create labels for the range
+        current_month = start_dt
+        while current_month <= end_dt:
+            all_months_keys.add(current_month.strftime('%B %Y'))
+            # Move to the next month
+            if current_month.month == 12:
+                current_month = current_month.replace(year=current_month.year + 1, month=1)
+            else:
+                current_month = current_month.replace(month=current_month.month + 1)
+
+
+    sorted_months = sorted(list(all_months_keys), key=lambda m: datetime.strptime(m, '%B %Y'))
+    
+    labels = sorted_months
+    datasets = {
+        'Anomaly Agent': [monthly_data['Anomaly Agent'][m] for m in sorted_months],
+        'Coordinator Agent': [monthly_data['Coordinator Agent'][m] for m in sorted_months],
+        'Signature Agent': [monthly_data['Signature Agent'][m] for m in sorted_months],
+        'blocks': [monthly_data['blocks'][m] for m in sorted_months]
+    }
+    
+    return {'labels': labels, 'datasets': datasets}
+
 @app.route('/agents', methods=['GET', 'POST'])
 def agents():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
+
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
 
     report = None
     coordinator = None
@@ -1829,14 +1936,14 @@ def agents():
                 coordinator_result = coordinator_agent_executor.invoke({"input": investigation_report})
                 coordinator = coordinator_result['output']
                 duration = time.time() - start_time
-                log_message = f"{datetime.now().isoformat()} - IP: {ip} - Status: Success - Duration: {duration:.2f}\n"
+                log_message = f"{datetime.now().isoformat()} - AGENT: Anomaly Agent - IP: {ip} - Status: Success - Duration: {duration:.2f}\n"
                 with open(INVESTIGATION_LOG, "a") as f:
                     f.write(log_message)
                 add_log_to_blockchain(f"Agent Action: Investigation for {ip} completed. Decision: {coordinator}")
             except Exception as e:
                 error = str(e)
                 duration = time.time() - start_time
-                log_message = f"{datetime.now().isoformat()} - IP: {ip} - Status: Failure - Duration: {duration:.2f}\n"
+                log_message = f"{datetime.now().isoformat()} - AGENT: Anomaly Agent - IP: {ip} - Status: Failure - Duration: {duration:.2f}\n"
                 with open(INVESTIGATION_LOG, "a") as f:
                     f.write(log_message)
         else:
@@ -1882,8 +1989,10 @@ def agents():
     recent_activities.sort(key=lambda x: x['timestamp'], reverse=True)
     recent_activities = recent_activities[:10]
     # --- END OF FIX ---
-
-    return render_template_string(AGENTS_TEMPLATE, report=report, coordinator=coordinator, ip=ip, error=error, recent_activities=recent_activities)
+    chart_data = get_monthly_activity_data(start_date, end_date)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify(chart_data)
+    return render_template_string(AGENTS_TEMPLATE, report=report, coordinator=coordinator, ip=ip, error=error, recent_activities=recent_activities, chart_data=chart_data)
 @app.route('/blockchain_logs')
 def blockchain_logs():
     if not session.get('logged_in'):
@@ -1986,4 +2095,3 @@ def settings():
 
 if __name__ == '__main__':
     app.run(debug=True)
-

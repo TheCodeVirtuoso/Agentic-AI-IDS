@@ -1,0 +1,54 @@
+// Agentic Cybersecurity Framework Architecture
+digraph ACF_Architecture_Horizontal {
+	nodesep=0.5 rankdir=LR ranksep=1.5 splines=ortho
+	node [color="#E2E8F0" fillcolor="#2D3748" fontcolor="#E2E8F0" fontname=Helvetica shape=box style="rounded,filled"]
+	edge [color="#4A5568" fontname=Helvetica]
+	graph [bgcolor=transparent fontcolor="#E2E8F0" fontname=Helvetica fontsize=20 label="Agentic Cybersecurity Framework (ACF) - Horizontal Flow"]
+	subgraph cluster_0 {
+		color="#4A5568" fillcolor="#1A202C" label="Input Sources" style="rounded,filled"
+		data_source [label="Network Flow Data" shape=cylinder]
+		threat_feed [label="Threat Feed" shape=note]
+	}
+	subgraph cluster_1 {
+		color="#4A5568" fillcolor="#1A202C" label="Detection and Analysis" style="rounded,filled"
+		ml_model [label="Isolation Forest
+ML Model"]
+		anomaly_agent [label="Anomaly Agent
+(LLM)" fillcolor="#4299E1" shape=Mdiamond]
+		signature_agent [label="Signature Agent
+(Function)" fillcolor="#48BB78" shape=septagon]
+		subgraph cluster_apis {
+			rank=same style=invis
+			whois_api [label="WHOIS API" fillcolor="#667EEA" shape=folder]
+			abusedb_api [label="AbuseDB API" fillcolor="#667EEA" shape=folder]
+		}
+	}
+	subgraph cluster_2 {
+		color="#E53E3E" fillcolor="#1A202C" label="Coordination and Decision" style="rounded,filled"
+		coordinator_agent [label="Coordinator Agent
+(LLM)" shape=octagon]
+		decision_diamond [label="Risk Level
+High?" fillcolor="#38B2AC" shape=diamond]
+	}
+	subgraph cluster_3 {
+		color="#4A5568" fillcolor="#1A202C" label="Response and Audit" style="rounded,filled"
+		block_action [label="Firewall Block Action" fillcolor="#C53030" shape=parallelogram]
+		log_action [label="Human Review Queue" fillcolor="#D69E2E" shape=parallelogram]
+		audit_trail [label="Immutable Audit Trail" fillcolor="#718096" shape=box3d]
+	}
+	data_source -> ml_model
+	threat_feed -> signature_agent
+	ml_model -> anomaly_agent [label="Raw Anomaly
+Alert"]
+	anomaly_agent -> whois_api
+	anomaly_agent -> abusedb_api
+	anomaly_agent -> coordinator_agent [label="  Structured Report
+with Confidence Score  " headport=w tailport=e]
+	signature_agent -> coordinator_agent [label="High-Confidence
+Alert" headport=w tailport=e]
+	coordinator_agent -> decision_diamond
+	decision_diamond -> block_action [label=Yes]
+	decision_diamond -> log_action [label=No]
+	block_action -> audit_trail [style=dashed]
+	log_action -> audit_trail [style=dashed]
+}

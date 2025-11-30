@@ -1,0 +1,50 @@
+// Agentic Cybersecurity Framework Architecture
+digraph ACF_Architecture {
+	nodesep=0.6 rankdir=LR ranksep=1.2 splines=ortho
+	node [color="#E2E8F0" fillcolor="#2D3748" fontcolor="#E2E8F0" fontname=Helvetica shape=box style="rounded,filled"]
+	edge [color="#4A5568" fontname=Helvetica]
+	graph [bgcolor=transparent fontcolor="#E2E8F0" fontname=Helvetica fontsize=20 label="Agentic Cybersecurity Framework (ACF) - High-Level Architecture"]
+	subgraph cluster_0 {
+		color="#4A5568" fillcolor="#1A202C" style="rounded,filled"
+		fontcolor="#A0AEC0" fontname=Helvetica fontsize=14 label="Layer 1: Sensor & Data Ingestion"
+		data_source [label="Network Flow Data
+(CIC-IDS Dataset)" shape=cylinder]
+		ml_model [label="Isolation Forest
+(Anomaly Detection)" shape=cds]
+		data_source -> ml_model
+	}
+	subgraph cluster_1 {
+		color="#E53E3E" fillcolor="#1A202C" style="rounded,filled"
+		fontcolor="#A0AEC0" fontname=Helvetica fontsize=14 label="Layer 2: Multi-Agent Core (LLM Reasoning)"
+		anomaly_agent [label="Anomaly Agent
+(Investigator)" fillcolor="#4299E1" shape=Mdiamond]
+		coordinator_agent [label="Coordinator Agent
+(Manager/Decision Authority)" fillcolor="#E53E3E" shape=octagon]
+		signature_agent [label="Signature Agent
+(Proactive Hunter)" fillcolor="#48BB78" shape=septagon]
+		apis [label="External APIs
+(WHOIS, AbuseDB)" fillcolor="#667EEA" shape=folder]
+		threat_feed [label="Threat Feed
+(Known Malicious IPs)" fillcolor="#ED8936" shape=note]
+		apis -> anomaly_agent
+		threat_feed -> signature_agent
+	}
+	subgraph cluster_2 {
+		color="#4A5568" fillcolor="#1A202C" style="rounded,filled"
+		fontcolor="#A0AEC0" fontname=Helvetica fontsize=14 label="Layer 3: Autonomous Response & HIL"
+		block_action [label="Firewall Block
+(Autonomous Response)" fillcolor="#C53030" shape=parallelogram]
+		log_action [label="Human Review Queue
+(HIL Escalation)" fillcolor="#D69E2E" shape=parallelogram]
+		audit_log [label="Immutable Audit Trail
+(Blockchain/Logs)" fillcolor="#718096" shape=box3d]
+	}
+	ml_model -> anomaly_agent [label="Raw Anomaly Alert"]
+	anomaly_agent -> coordinator_agent [label="Structured Report
+(with Confidence Score)"]
+	signature_agent -> coordinator_agent [label="High-Confidence Alert"]
+	coordinator_agent -> block_action [label="High-Risk Decision (>75)"]
+	coordinator_agent -> log_action [label="Low/Medium-Risk Decision (<=75)"]
+	block_action -> audit_log [style=dashed]
+	log_action -> audit_log [style=dashed]
+}
